@@ -1,18 +1,19 @@
 ---
 output: 
   html_document:
-  css: styles.css
+    css: styles.css
 ---
 
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(scholar)
 library(kableExtra)
+library(rorcid)
 knitr::opts_chunk$set(echo = FALSE)
+Sys.getenv("ORCID_TOKEN")
 ```
 
-Johnny Coder
-============
+# Aaron Conway RN PhD
 
 ----
 
@@ -20,8 +21,24 @@ Johnny Coder
 
 ----
 
-Publications
----------
+-------------------     ----------------------------
+1 MyAddress                        email@example.com
+MyTown 1000                          @twitter_handle
+MyCountry                           1800 my-phone-nr
+-------------------     ----------------------------
+
+
+## Employment
+```{r }
+employ <- rorcid::orcid_employments("0000-0002-9583-8636")
+employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+  mutate(`end_date` = replace_na(`end-date.year.value`, "Current")) %>% 
+  janitor::clean_names() %>% 
+  select(role_title, end_date)
+```
+
+
+## Publications
 
 ```{r }
 scholar::get_publications("2hpmnr8AAAAJ") %>% 
