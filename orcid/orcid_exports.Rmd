@@ -1,0 +1,50 @@
+---
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(rorcid)
+knitr::opts_chunk$set(echo = FALSE)
+Sys.getenv("ORCID_TOKEN")
+```
+
+# Education
+```{r }
+edu <- rorcid::orcid_educations("0000-0002-9583-8636")
+edu  <- edu$`0000-0002-9583-8636`$`education-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+write_csv(edu, "edu.csv")
+```
+
+# Employment
+```{r }
+employ <- rorcid::orcid_employments("0000-0002-9583-8636")
+employ <- employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+write_csv(employ, 'employ.csv')
+```
+
+```{r}
+funding <- rorcid::orcid_fundings("0000-0002-9583-8636")
+funding <- funding$`0000-0002-9583-8636`$group$`funding-summary` 
+funding <- tibble(
+  type = map_chr(funding, "type"),
+  funder = map_chr(funding, "organization.name"),
+  title = map_chr(funding, "title.title.value"),
+  start = map_chr(funding, "start-date.year.value"),
+  end = map_chr(funding, "end-date.year.value")) %>% 
+  mutate(timeframe = glue::glue("{start} - {end}")) %>% 
+  select(type, funder, title, timeframe) 
+fundingdf$type <- stringr::str_replace_all(fundingdf$type, "SALARY_AWARD", "SALARY AWARD")
+write_csv(fundingdf, 'funding.csv')
+```
+

@@ -1,0 +1,66 @@
+---
+output: 
+  html_document:
+    css: styles.css
+    includes:
+      in_header: fa.html
+      after_body: footer.html
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(scholar)
+library(kableExtra)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+
+# Aaron Conway RN PhD
+
+----
+
+>  RBC Chair in Cardiovascular Nursing Research | Peter Munk Cardiac Centre<br>Assistant Professor | Lawrence S. Bloomberg Faculty of Nursing | University of Toronto<br>aaron.conway@utoronto.ca
+
+
+----
+
+
+  
+Education
+----------
+```{r}
+edu <- read_csv("http://aaronconway.dev/images/edu.csv")
+kable(edu, col.names = c("", "", "", ""))%>% 
+    kable_styling(bootstrap_options = "hover") 
+```
+
+Employment
+----------
+```{r}
+employ <- read_csv("http://aaronconway.dev/images/employ.csv")
+kable(employ,  col.names = c("", "", "", ""))%>% 
+    kable_styling(bootstrap_options = "hover") 
+```
+
+Funding
+----------
+```{r}
+funding <- read_csv("http://aaronconway.dev/images/funding.csv")
+kable(funding,  col.names = c("", "", "", "")) %>%
+    column_spec(1, width = "5em") %>% 
+    column_spec(2, width = "15em") %>% 
+  column_spec(3, width = "25em") %>% 
+    kable_styling(bootstrap_options = "hover") 
+```
+
+## Publications
+
+```{r }
+scholar::get_publications("2hpmnr8AAAAJ") %>% 
+  select(title, author, journal, year, cites) %>%
+  kable(col.names = c("Title", "Authors", "Journal", "Year", "Total Citations")) %>%
+  kable_styling(bootstrap_options = "hover") %>% 
+  scroll_box(width = "auto%", height = "600px")
+```
+
