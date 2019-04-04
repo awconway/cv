@@ -1,0 +1,198 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+% Awesome CV LaTeX Template for CV/Resume
+%
+% This template has been downloaded from:
+% https://github.com/posquit0/Awesome-CV
+%
+% Author:
+% Claud D. Park <posquit0.bj@gmail.com>
+% http://www.posquit0.com
+%
+%
+% Adapted to be an Rmarkdown template by Mitchell O'Hara-Wild
+% 23 November 2018
+%
+% Template license:
+% CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+%
+
+
+%-------------------------------------------------------------------------------
+% CONFIGURATIONS
+%-------------------------------------------------------------------------------
+% A4 paper size by default, use 'letterpaper' for US letter
+\documentclass[11pt, a4paper]{awesome-cv}
+
+% Configure page margins with geometry
+\geometry{left=1.4cm, top=.8cm, right=1.4cm, bottom=1.8cm, footskip=.5cm}
+
+% Specify the location of the included fonts
+\fontdir[fonts/]
+
+% Color for highlights
+% Awesome Colors: awesome-emerald, awesome-skyblue, awesome-red, awesome-pink, awesome-orange
+%                 awesome-nephritis, awesome-concrete, awesome-darknight
+
+\colorlet{awesome}{awesome-red}
+
+% Colors for text
+% Uncomment if you would like to specify your own color
+% \definecolor{darktext}{HTML}{414141}
+% \definecolor{text}{HTML}{333333}
+% \definecolor{graytext}{HTML}{5D5D5D}
+% \definecolor{lighttext}{HTML}{999999}
+
+% Set false if you don't want to highlight section with awesome color
+\setbool{acvSectionColorHighlight}{true}
+
+% If you would like to change the social information separator from a pipe (|) to something else
+\renewcommand{\acvHeaderSocialSep}{\quad\textbar\quad}
+
+\def\endfirstpage{\newpage}
+
+%-------------------------------------------------------------------------------
+%	PERSONAL INFORMATION
+%	Comment any of the lines below if they are not required
+%-------------------------------------------------------------------------------
+% Available options: circle|rectangle,edge/noedge,left/right
+
+\name{Aaron Conway}{}
+
+\position{RBC Chair in Cardiovascular Nursing}
+\address{University of Toronto}
+
+\mobile{+1 (416) 340-4654}
+\email{\href{mailto:aaron.conway@utoronto.ca}{\nolinkurl{aaron.conway@utoronto.ca}}}
+\homepage{\url{https://bloomberg.nursing.utoronto.ca/faculty/aaron-conway}}
+\github{awconway}
+\linkedin{aaron-conway-toronto}
+\twitter{aw\_conway}
+
+% \gitlab{gitlab-id}
+% \stackoverflow{SO-id}{SO-name}
+% \skype{skype-id}
+% \reddit{reddit-id}
+
+\quote{Dr.~Aaron Conway holds the RBC Chair in Cardiovascular Nursing Research at the Peter Munk Cardiac Centre and the University of Toronto. His research aims to improve patient safety during procedural sedation and analgesia.}
+
+\usepackage{booktabs}
+
+% Templates for detailed entries
+% Arguments: what when with where why
+\usepackage{etoolbox}
+\def\detaileditem#1#2#3#4#5{
+\cventry{#1}{#3}{#4}{#2}{\ifx#5\empty\else{\begin{cvitems}#5\end{cvitems}}\fi}}
+\def\detailedsection#1{\begin{cventries}#1\end{cventries}}
+
+% Templates for brief entries
+% Arguments: what when with
+\def\briefitem#1#2#3{\cvhonor{}{#1}{#3}{#2}}
+\def\briefsection#1{\begin{cvhonors}#1\end{cvhonors}}
+
+\providecommand{\tightlist}{%
+	\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+%------------------------------------------------------------------------------
+
+
+
+\begin{document}
+
+% Print the header with above personal informations
+% Give optional argument to change alignment(C: center, L: left, R: right)
+\makecvheader
+
+% Print the footer with 3 arguments(<left>, <center>, <right>)
+% Leave any of these blank if they are not needed
+\makecvfooter
+  {April 2019}
+  {Aaron Conway~~~·~~~Curriculum Vitae}
+  {\thepage}
+
+
+%-------------------------------------------------------------------------------
+%	CV/RESUME CONTENT
+%	Each section is imported separately, open each file in turn to modify content
+%------------------------------------------------------------------------------
+
+
+
+\hypertarget{education}{%
+\section{Education}\label{education}}
+
+\detailedsection{\detaileditem
+{BCom (Hons) in Econometrics}
+{Mar. 2017 - Nov. 2017}
+{Monash University}
+{Clayton, Australia}
+{\item{GPA of 3.875, WAM of 86.625}\item{Best in class for: Advanced statistical modelling (ETC3580), Bayesian time series econometrics (ETC4541), Applied econometrics 2 (ETC4410), Advanced topics in computational science (FIT4012), Honours Research Project (ETC4860)}}\detaileditem
+{BCom in Econometrics, BSc in Mathematical statistics and Computational Science}
+{Mar. 2013 - Nov. 2016}
+{Monash University}
+{Clayton, Australia}
+{\item{GPA of 3.688, WAM of 85.385}\item{Mentored in the Access Monash Ambassador Program (2015 and 2016)}\item{Participated in the Vice-Chancellor's Ancora Imparo Student Leadership Program (2014)}\item{Best in class for: Business analytics (ETC3450), Business forecasting (ETC2450), Algorithms and data structures (FIT2004), Time series analysis for business and economics (ETC3450)}}}
+
+\#Publications
+
+\begin{verbatim}
+## Warning: Factor `what` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `with` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `where` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `what` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `with` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `where` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `what` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `with` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `where` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `what` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `with` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Factor `where` contains implicit NA, consider using
+## `forcats::fct_explicit_na`
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,49 @@
+---
+name: Aaron Conway
+position: "RBC Chair in Cardiovascular Nursing"
+address: "University of Toronto"
+phone: +1 (416) 340-4654
+profilepic: 
+www: https://bloomberg.nursing.utoronto.ca/faculty/aaron-conway
+email: "aaron.conway@utoronto.ca"
+twitter: aw_conway
+github: awconway
+linkedin: aaron-conway-toronto
+date: "`r format(Sys.time(), '%B %Y')`"
+aboutme: "Dr. Aaron Conway holds the RBC Chair in Cardiovascular Nursing Research at the Peter Munk Cardiac Centre and the University of Toronto. His research aims to improve patient safety during procedural sedation and analgesia."
+output: vitae::awesomecv
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(vitae)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Education
+```{r}
+tribble(
+  ~ degree, ~ uni, ~ loc, ~ dates, ~ details,
+  "BCom (Hons) in Econometrics", "Monash University", "Clayton, Australia", "Mar. 2017 - Nov. 2017", "GPA of 3.875, WAM of 86.625",
+  "BCom (Hons) in Econometrics", "Monash University", "Clayton, Australia", "Mar. 2017 - Nov. 2017", "Best in class for: Advanced statistical modelling (ETC3580), Bayesian time series econometrics (ETC4541), Applied econometrics 2 (ETC4410), Advanced topics in computational science (FIT4012), Honours Research Project (ETC4860)",
+  "BCom in Econometrics, BSc in Mathematical statistics and Computational Science", "Monash University", "Clayton, Australia", "Mar. 2013 - Nov. 2016", "GPA of 3.688, WAM of 85.385",
+  "BCom in Econometrics, BSc in Mathematical statistics and Computational Science", "Monash University", "Clayton, Australia", "Mar. 2013 - Nov. 2016", "Mentored in the Access Monash Ambassador Program (2015 and 2016)",
+  "BCom in Econometrics, BSc in Mathematical statistics and Computational Science", "Monash University", "Clayton, Australia", "Mar. 2013 - Nov. 2016", "Participated in the Vice-Chancellor's Ancora Imparo Student Leadership Program (2014)",
+  "BCom in Econometrics, BSc in Mathematical statistics and Computational Science", "Monash University", "Clayton, Australia", "Mar. 2013 - Nov. 2016", "Best in class for: Business analytics (ETC3450), Business forecasting (ETC2450), Algorithms and data structures (FIT2004), Time series analysis for business and economics (ETC3450)"
+) %>% 
+  detailed_entries(degree, dates, uni, loc, details)
+```
+
+ #Publications
+ 
+```{r publications}
+scholar::get_publications("315209982802967212") %>% 
+  detailed_entries(
+    what = title,
+    when = year,
+    with = author,
+    where = journal,
+    why = cites
+  )
+```
+ 

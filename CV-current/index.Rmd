@@ -1,0 +1,82 @@
+---
+name: Aaron Conway
+position: "RBC Chair in Cardiovascular Nursing"
+phone: +1 (416) 340-4654
+email: "aaron.conway@utoronto.ca"
+twitter: aw_conway
+github: awconway
+www: aaronconway.info
+linkedin: aaron-conway-toronto
+date: "`r format(Sys.time(), '%B %Y')`"
+headcolor: 414141
+output: vitae::awesomecv
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(vitae)
+library(scholar)
+library(rorcid)
+knitr::opts_chunk$set(echo = FALSE)
+Sys.getenv("ORCID_TOKEN")
+```
+# Education
+```{r }
+edu <- rorcid::orcid_educations("0000-0002-9583-8636")
+edu$`0000-0002-9583-8636`$`education-summary` %>% 
+  mutate(`end-date.year.value` = replace_na(`end-date.year.value`, "Current")) %>% 
+  detailed_entries(
+    what = `role-title`,
+    when = glue::glue("{`start-date.year.value`} - {`end-date.year.value`}"), 
+    with = organization.name,
+    where = glue::glue("{`organization.address.city`}, {`organization.address.country`}")
+  )
+```
+# Employment
+```{r }
+employ <- rorcid::orcid_employments("0000-0002-9583-8636")
+employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = replace_na(end_date_year_value, "Current")) %>% 
+  detailed_entries(
+    what = role_title,
+    when = glue::glue("{start_date_year_value} - {end_date}"), 
+    with = organization_name,
+    where = glue::glue("{organization_address_city}, {organization_address_country}")
+  )
+```
+
+
+# Publications
+```{r }
+scholar::get_publications("2hpmnr8AAAAJ") %>%
+  detailed_entries(
+    with = title,
+    when = year,
+    what = author,
+    where = journal,
+    why = paste("Total citations", cites, sep = ": ")
+  )
+```
+
+# Funding
+
+```{r}
+funding <- rorcid::orcid_fundings("0000-0002-9583-8636")
+funding <- funding$`0000-0002-9583-8636`$group$`funding-summary`
+fundingdf <- tibble(
+  type = map_chr(funding, "type"),
+  funder = map_chr(funding, "organization.name"),
+  title = map_chr(funding, "title.title.value"),
+  start = map_chr(funding, "start-date.year.value"),
+  end = map_chr(funding, "end-date.year.value")
+)
+fundingdf %>% 
+detailed_entries(
+    with = title,
+    when = glue::glue("{start} - {end}"),
+    where = funder,
+    what = type)
+```
+
+# 
