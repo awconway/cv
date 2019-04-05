@@ -1,82 +1,147 @@
 ---
-name: Aaron Conway
-position: "RBC Chair in Cardiovascular Nursing"
-phone: +1 (416) 340-4654
-email: "aaron.conway@utoronto.ca"
-twitter: aw_conway
-github: awconway
-www: aaronconway.info
-linkedin: aaron-conway-toronto
-date: "`r format(Sys.time(), '%B %Y')`"
-headcolor: 414141
-output: vitae::awesomecv
+output: 
+  html_document:
+    css: styles.css
+    includes:
+      after_body: footer.html
 ---
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-library(vitae)
 library(scholar)
+library(kableExtra)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(rorcid)
-knitr::opts_chunk$set(echo = FALSE)
-Sys.getenv("ORCID_TOKEN")
+x  <- "dc7ea3ae-38fd-4188-8bd1-1db4215ea139"
+Sys.setenv(ORCID_TOKEN=x)
 ```
-# Education
-```{r }
+
+# Aaron Conway RN PhD
+
+----
+
+>  RBC Chair in Cardiovascular Nursing Research | Peter Munk Cardiac Centre<br>Assistant Professor | Lawrence S. Bloomberg Faculty of Nursing | University of Toronto<br>aaron.conway@utoronto.ca
+
+
+----
+
+  
+## Education
+
+```{r}
 edu <- rorcid::orcid_educations("0000-0002-9583-8636")
-edu$`0000-0002-9583-8636`$`education-summary` %>% 
-  mutate(`end-date.year.value` = replace_na(`end-date.year.value`, "Current")) %>% 
-  detailed_entries(
-    what = `role-title`,
-    when = glue::glue("{`start-date.year.value`} - {`end-date.year.value`}"), 
-    with = organization.name,
-    where = glue::glue("{`organization.address.city`}, {`organization.address.country`}")
-  )
-```
-# Employment
-```{r }
-employ <- rorcid::orcid_employments("0000-0002-9583-8636")
-employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+edu <- edu$`0000-0002-9583-8636`$`education-summary` %>% 
   janitor::clean_names() %>% 
-  mutate(end_date = replace_na(end_date_year_value, "Current")) %>% 
-  detailed_entries(
-    what = role_title,
-    when = glue::glue("{start_date_year_value} - {end_date}"), 
-    with = organization_name,
-    where = glue::glue("{organization_address_city}, {organization_address_country}")
-  )
+  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+kable(edu, col.names = c("", "", "", ""))%>% 
+    kable_styling(bootstrap_options = "hover") 
 ```
 
+## Employment
 
-# Publications
-```{r }
-scholar::get_publications("2hpmnr8AAAAJ") %>%
-  detailed_entries(
-    with = title,
-    when = year,
-    what = author,
-    where = journal,
-    why = paste("Total citations", cites, sep = ": ")
-  )
+```{r}
+employ <- rorcid::orcid_employments("0000-0002-9583-8636")
+employ <- employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+kable(employ,  col.names = c("", "", "", ""))%>% 
+      column_spec(1, width = "18em") %>% 
+    column_spec(2, width = "18em") %>% 
+    kable_styling(bootstrap_options = "hover") 
 ```
 
-# Funding
+## Funding
+
 
 ```{r}
 funding <- rorcid::orcid_fundings("0000-0002-9583-8636")
-funding <- funding$`0000-0002-9583-8636`$group$`funding-summary`
-fundingdf <- tibble(
+pcodes <- vapply(funding[[1]]$group$`funding-summary`, "[[", 1, "put-code")
+out <- lapply(pcodes, function(z) orcid_fundings("0000-0002-9583-8636", put_code=z))
+amount <- vapply(out, function(w) w[[1]]$amount$value, "")
+amount  <- paste("$", amount, sep = "")
+funding <- funding$`0000-0002-9583-8636`$group$`funding-summary` 
+funding <- tibble(
   type = map_chr(funding, "type"),
   funder = map_chr(funding, "organization.name"),
   title = map_chr(funding, "title.title.value"),
   start = map_chr(funding, "start-date.year.value"),
-  end = map_chr(funding, "end-date.year.value")
-)
-fundingdf %>% 
-detailed_entries(
-    with = title,
-    when = glue::glue("{start} - {end}"),
-    where = funder,
-    what = type)
+  end = map_chr(funding, "end-date.year.value")) %>% 
+  mutate(timeframe = glue::glue("{start} - {end}")) %>% 
+  select(type, funder, title, timeframe) 
+funding$type <- stringr::str_replace_all(funding$type, "SALARY_AWARD", "SALARY AWARD")
+  funding <- funding %>% 
+  mutate(Amount = amount)
+kable(funding,  col.names = c("Type", "Funder", "Title", "Duration", "Amount")) %>%
+    column_spec(1, width = "5em") %>% 
+    column_spec(2, width = "12em") %>% 
+  column_spec(3, width = "20em") %>% 
+    kable_styling(bootstrap_options = "hover") 
 ```
 
-# 
+## Publications
+```{r}
+id <- "2hpmnr8AAAAJ"
+
+## Get his profile
+l <- get_profile(id)
+```
+
+```{r}
+scholar <- scholar::get_publications(id) 
+impact <- get_impactfactor(journals=scholar$journal, max.distance = 0.1)
+scholar <- cbind(scholar, impact)
+```
+
+```{r}
+papers <- get_num_articles(id)
+journals  <- get_num_distinct_journals(id)
+```
+<br>
+
+>Dr Conway's publication metrics indicate a rising trajectory in terms of the quality and quantity of academic papers he has published and the citation count of those papers. Aaron has published `r papers` articles in `r journals` distinct journals across multiple disciplines including nursing, anesthesia and cardiology. His publications have been cited `r l$total_cites` times, with a current H-index of `r l$h_index` and `r l$i10_index` publications have at least 10 citations. The plots below shows the number of publications and citations per year since he started an academic career.
+
+<br>
+```{r out.width=c('50%', '50%'), fig.show='hold'}
+scholar %>% 
+  group_by(year) %>% 
+  summarise(pubsperyear = n()) %>% 
+  mutate(total = cumsum(pubsperyear)) %>% 
+ggplot(aes(year, total)) +
+    geom_segment(aes(xend = year, yend = 0), size=1, color='darkgrey') +
+    geom_point(size=3, color="#3c8dbc") +
+    theme_classic() +
+    labs(x= "Year", y = "Publications") +
+  scale_x_continuous(breaks = 2010:max(scholar$year, na.rm = TRUE))
+
+ct <- get_citation_history(id)
+
+## Plot citation trend
+ggplot(ct, aes(year, cites)) +
+    geom_segment(aes(xend = year, yend = 0), size=1, color='darkgrey') +
+    geom_point(size=3, color="#3c8dbc") +
+    theme_classic() +
+    labs(x= "Year", y = "Citations")
+
+```
+
+
+```{r}
+
+
+```
+
+<br><br>
+```{r }
+scholar%>% 
+  select(title, author, journal, year, cites, ImpactFactor) %>%
+  kable(col.names = c("Title", "Authors", "Journal", "Year", "Total Citations", "Impact Factor")) %>%
+  kable_styling(bootstrap_options = "hover") %>% 
+  scroll_box(width = "auto%", height = "600px")
+```
+
