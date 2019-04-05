@@ -1,0 +1,9 @@
+
+Listening on http://127.0.0.1:45971
+
+
+
+processing file: index.Rmd
+Quitting from lines 28-42 (index.Rmd) 
+Warning: Error in loadNamespace: there is no package called 'rcrossref'
+  153: <Anonymous>
