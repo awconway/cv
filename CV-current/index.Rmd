@@ -1,4 +1,5 @@
 ---
+runtime: shiny
 output: 
   html_document:
     css: styles.css
@@ -6,8 +7,11 @@ output:
       after_body: footer.html
 ---
 
+Updated `r Sys.time()`
+
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(shiny)
 library(scholar)
 library(kableExtra)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
@@ -36,8 +40,9 @@ edu <- edu$`0000-0002-9583-8636`$`education-summary` %>%
   mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
     mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
   select(role_title, organization_name, location, timeframe)
+
 kable(edu, col.names = c("", "", "", ""))%>% 
-    kable_styling(bootstrap_options = "hover") 
+    kable_styling(bootstrap_options = "hover")
 ```
 
 ## Employment
@@ -475,12 +480,12 @@ papers <- nrow(conwaydf)
 
 ## Publications
 
->Dr Conway's publication metrics indicate a rising trajectory in terms of the quality and quantity of academic papers he has published. Aaron has published `r papers` articles across multiple disciplines including nursing, anesthesia and cardiology. 
+>Dr Conway's publication metrics indicate a rising trajectory in terms of the quality and quantity of academic papers he has published. Aaron has published `r renderText(papers)` articles across multiple disciplines including nursing, anesthesia and cardiology. 
 
 
 <br><br>
 ```{r }
-conwaydf %>% 
+  conwaydf %>% 
   select(Title, Authors, Journal, Year, impact_factor) %>%
   kable(col.names = c("Title", "Authors", "Journal", "Year", "Impact Factor")) %>%
   kable_styling(bootstrap_options = "hover") %>% 
