@@ -1,0 +1,164 @@
+
+Listening on http://127.0.0.1:35075
+
+
+
+processing file: index.Rmd
+-------------------------------------------------------------------------
+You have loaded plyr after dplyr - this is likely to cause problems.
+If you need functions from both plyr and dplyr, please load plyr first, then dplyr:
+library(plyr); library(dplyr)
+-------------------------------------------------------------------------
+
+Attaching package: 'plyr'
+
+The following objects are masked from 'package:dplyr':
+
+    arrange, count, desc, failwith, id, mutate, rename, summarise,
+    summarize
+
+The following object is masked from 'package:purrr':
+
+    compact
+
+Quitting from lines 90-475 (index.Rmd) 
+Warning: Error in [: incorrect number of dimensions
+  143: FUN
+  142: lapply
+  140: identifiers.works
+  138: my.orcid [<text>#146]
+  137: eval
+  136: eval
+  131: evaluate_call
+  130: evaluate::evaluate
+  129: evaluate
+  127: block_exec
+  126: call_block
+  125: process_group.block
+  122: process_file
+  121: knitr::knit
+  120: <Anonymous>
+  115: <reactive>
+   99: doc
+   98: shiny::renderUI
+   97: func
+   84: origRenderFunc
+   83: output$__reactivedoc__
+    3: <Anonymous>
+    1: rmarkdown::run
+
+
+
+processing file: index.Rmd
+Quitting from lines 90-475 (index.Rmd) 
+Warning: Error in [: incorrect number of dimensions
+  143: FUN
+  142: lapply
+  140: identifiers.works
+  138: my.orcid [<text>#146]
+  137: eval
+  136: eval
+  131: evaluate_call
+  130: evaluate::evaluate
+  129: evaluate
+  127: block_exec
+  126: call_block
+  125: process_group.block
+  122: process_file
+  121: knitr::knit
+  120: <Anonymous>
+  115: <reactive>
+   99: doc
+   98: shiny::renderUI
+   97: func
+   84: origRenderFunc
+   83: output$__reactivedoc__
+    3: <Anonymous>
+    1: rmarkdown::run
+
+
+
+processing file: index.Rmd
+Quitting from lines 90-471 (index.Rmd) 
+Warning: Error in [: incorrect number of dimensions
+  143: FUN
+  142: lapply
+  140: identifiers.works
+  138: my.orcid [<text>#142]
+  137: eval
+  136: eval
+  131: evaluate_call
+  130: evaluate::evaluate
+  129: evaluate
+  127: block_exec
+  126: call_block
+  125: process_group.block
+  122: process_file
+  121: knitr::knit
+  120: <Anonymous>
+  115: <reactive>
+   99: doc
+   98: shiny::renderUI
+   97: func
+   84: origRenderFunc
+   83: output$__reactivedoc__
+    3: <Anonymous>
+    1: rmarkdown::run
+
+
+
+processing file: index.Rmd
+Quitting from lines 90-471 (index.Rmd) 
+Warning: Error in [: incorrect number of dimensions
+  143: FUN
+  142: lapply
+  140: identifiers.works
+  138: my.orcid [<text>#142]
+  137: eval
+  136: eval
+  131: evaluate_call
+  130: evaluate::evaluate
+  129: evaluate
+  127: block_exec
+  126: call_block
+  125: process_group.block
+  122: process_file
+  121: knitr::knit
+  120: <Anonymous>
+  115: <reactive>
+   99: doc
+   98: shiny::renderUI
+   97: func
+   84: origRenderFunc
+   83: output$__reactivedoc__
+    3: <Anonymous>
+    1: rmarkdown::run
+
+
+
+processing file: index.Rmd
+Quitting from lines 90-471 (index.Rmd) 
+Warning: Error in [: incorrect number of dimensions
+  143: FUN
+  142: lapply
+  140: identifiers.works
+  138: my.orcid [<text>#142]
+  137: eval
+  136: eval
+  131: evaluate_call
+  130: evaluate::evaluate
+  129: evaluate
+  127: block_exec
+  126: call_block
+  125: process_group.block
+  122: process_file
+  121: knitr::knit
+  120: <Anonymous>
+  115: <reactive>
+   99: doc
+   98: shiny::renderUI
+   97: func
+   84: origRenderFunc
+   83: output$__reactivedoc__
+    3: <Anonymous>
+    1: rmarkdown::run
