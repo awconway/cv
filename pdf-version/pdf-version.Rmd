@@ -1,0 +1,109 @@
+---
+name: Aaron Conway
+position: "RBC Chair in Cardiovascular Nursing Research"
+address: "Peter Munk Cardiac Centre and University of Toronto"
+phone: +1 (416) 946-7112
+www: aaronconway.info
+email: "aaron.conway@utoronto.ca"
+twitter: aw_conway
+github: awconway
+linkedin: aaron-conway-toronto
+date: "`r format(Sys.time(), '%D %B %Y')`"
+output: vitae::hyndman
+params:
+  orcid.id: "0000-0002-9583-8636"
+  years.since: 2010
+  spacer: ', '
+  journal.only: "No"
+  order: "dyear"
+  max.authors: 3
+  style: "APA"
+  bullets: 'numbers'
+  extra.order: 'None'
+  flag.OA: FALSE
+  bold.author: FALSE
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(cvR)
+library(shiny)
+library(scholar)
+library(rorcid)
+library(kableExtra)
+x  <- "dc7ea3ae-38fd-4188-8bd1-1db4215ea139"
+Sys.setenv(ORCID_TOKEN=x, orcid_email="aaron.conway@utoronto.ca")
+```
+
+  
+# Education
+
+```{r}
+edu <- rorcid::orcid_educations(params$orcid.id)
+edu <- edu$`0000-0002-9583-8636`$`education-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = tidyr::replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+
+detailed_entries(edu, what = role_title, with = organization_name, when = timeframe, where = location)
+```
+
+# Employment
+
+```{r}
+employ <- rorcid::orcid_employments(params$orcid.id)
+employ <- employ$`0000-0002-9583-8636`$`employment-summary` %>% 
+  janitor::clean_names() %>% 
+  mutate(end_date = tidyr::replace_na(`end_date_year_value`, "Current")) %>%
+  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
+    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
+  select(role_title, organization_name, location, timeframe)
+
+detailed_entries(employ, what = role_title, with = organization_name, when = timeframe, where = location)
+```
+
+# Funding
+
+
+```{r}
+funding <- rorcid::orcid_fundings(params$orcid.id)
+pcodes <- vapply(funding[[1]]$group$`funding-summary`, "[[", 1, "put-code")
+out <- lapply(pcodes, function(z) orcid_fundings(params$orcid.id, put_code=z))
+amount <- vapply(out, function(w) w[[1]]$amount$value, "")
+amount  <- paste("$", amount, sep = "")
+funding <- funding$`0000-0002-9583-8636`$group$`funding-summary` 
+funding <- tibble(
+  type = purrr::map_chr(funding, "type"),
+  funder = purrr::map_chr(funding, "organization.name"),
+  title = purrr::map_chr(funding, "title.title.value"),
+  start = purrr::map_chr(funding, "start-date.year.value"),
+  end = purrr::map_chr(funding, "end-date.year.value")) %>% 
+  mutate(timeframe = glue::glue("{start} - {end}")) %>% 
+  select(type, funder, title, timeframe) 
+funding$type <- stringr::str_replace_all(funding$type, "SALARY_AWARD", "SALARY AWARD")
+  funding <- funding %>% 
+  mutate(Amount = amount)
+  detailed_entries(funding, what = type, with = funder, when = timeframe, where = title, why = Amount)
+```
+
+# Publications
+
+```{r}
+results <- my.orcid(params$orcid.id) # single
+```
+
+
+
+```{r}
+papers  <-  my.filter(results, max.authors=params$max.authors, order=params$order,
+                   journal.only=params$journal.only, years.since=params$years.since,
+                   spacer=params$spacer, bold.author = params$bold.author)
+```
+
+```{r list.papers, results='asis'}
+print_papers(papers)
+```
