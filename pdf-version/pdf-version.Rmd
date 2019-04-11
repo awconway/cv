@@ -8,8 +8,8 @@ email: "aaron.conway@utoronto.ca"
 twitter: aw_conway
 github: awconway
 linkedin: aaron-conway-toronto
-date: "`r format(Sys.time(), '%D %B %Y')`"
-output: vitae::hyndman
+date: "`r format(Sys.time(), '%B %Y')`"
+output: vitae::awesomecv
 params:
   orcid.id: "0000-0002-9583-8636"
   years.since: 2010
@@ -33,6 +33,7 @@ library(shiny)
 library(scholar)
 library(rorcid)
 library(kableExtra)
+library(ggplot2)
 x  <- "dc7ea3ae-38fd-4188-8bd1-1db4215ea139"
 Sys.setenv(ORCID_TOKEN=x, orcid_email="aaron.conway@utoronto.ca")
 ```
@@ -87,7 +88,7 @@ funding <- tibble(
 funding$type <- stringr::str_replace_all(funding$type, "SALARY_AWARD", "SALARY AWARD")
   funding <- funding %>% 
   mutate(Amount = amount)
-  detailed_entries(funding, what = type, with = funder, when = timeframe, where = title, why = Amount)
+  detailed_entries(funding, what = type, with = funder, when = timeframe, where = Amount, why = title)
 ```
 
 # Publications
