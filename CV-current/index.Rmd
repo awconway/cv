@@ -256,8 +256,6 @@ distinctions <- tibble(
   time = purrr::map_chr(distinctions, "distinction-summary.start-date.year.value"))
 
 kable(distinctions,  col.names = c("", "", ""))%>% 
-      column_spec(1, width = "18em") %>% 
-    column_spec(2, width = "18em") %>% 
     kable_styling(bootstrap_options = "hover") 
 ```
 
