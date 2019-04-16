@@ -19,7 +19,7 @@ params:
   bold.author: FALSE
 ---
 
-Updated `r Sys.time()`
+<center>This CV has been updated on `r format(Sys.time(), "%a %b %d %X %Y")` using information from ORCID and Google Scholar</center>
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -277,12 +277,14 @@ orcid_service <- function(orcid, put_code = NULL,
 }
 
 service  <- orcid_service(params$orcid.id)
-# pulling out end year doesn't work because there is no variable if it is "current"
- pcodes <- vapply(service[[1]]$`affiliation-group`$summaries, "[[", 1, "service-summary.put-code")
- pcodes2 <- pcodes[!pcodes %in% 7620907] # this service is current
- out <- lapply(pcodes2, function(z) orcid_service(params$orcid.id, put_code=z))
- end_year <- vapply(out, function(w) w[[1]]$`end-date`$year$value, "")
-end_year <- append("Current", end_year)
+
+currentFunction <- function(x){
+  if(!is.null(service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date`)){
+     "Current"
+  } else {service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date.year.value`}
+}
+
+end_year <- vapply(seq(1, length(service$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
 
 
 service  <- service$`0000-0002-9583-8636`$`affiliation-group`$summaries
@@ -300,7 +302,48 @@ kable(col.names = c("", "", "")) %>%
     kable_styling(bootstrap_options = "hover") 
 ```
 
+## Memberships
 
+```{r}
+orcid_membership <- function(orcid, put_code = NULL, 
+                          format = "application/json", summary = FALSE, ...) {
+  
+  pth <- if (!summary) {
+    if (is.null(put_code)) "memberships" else "membership"
+  } else {
+    if (is.null(put_code)) {
+      stop("if summary == TRUE, must give 1 or more put_code")
+    }
+    "membership/summary"
+  }
+  orcid_putcode_helper(pth, orcid, put_code, format, ...)
+}
+
+membership  <- orcid_membership(params$orcid.id)
+
+currentFunction <- function(x){
+  if(!is.null(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date`)){
+     "Current"
+  } else {membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date.year.value`}
+}
+
+end_year <- vapply(seq(1, length(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
+
+membership <- membership$`0000-0002-9583-8636`$`affiliation-group`$summaries 
+
+membership <- tibble(
+  organization = purrr::map_chr(membership, "membership-summary.organization.name"),
+  title = purrr::map_chr(membership, "membership-summary.role-title"),
+  start = purrr::map_chr(membership, "membership-summary.start-date.year.value"))
+
+membership$time <- glue::glue("{membership$start} - {end_year}") 
+membership %>% 
+select(organization, title, time) %>% 
+kable(col.names = c("", "", "")) %>% 
+      column_spec(1, width = "25em") %>% 
+    column_spec(2, width = "20em") %>% 
+    kable_styling(bootstrap_options = "hover") 
+```
 
 
 ## Funding
@@ -341,8 +384,10 @@ l <- get_profile(id)
 
 ```{r}
 scholar <- scholar::get_publications(id) 
+scholar$journal <- recode(scholar$journal, "The Cochrane Library" = "Cochrane Database of Systematic Reviews")
 impact <- get_impactfactor(journals=scholar$journal, max.distance = 0.1)
-scholar <- cbind(scholar, impact)
+scholar$impact <- impact$ImpactFactor
+scholar$impact <- na_if(scholar$impact, "244.585")
 ```
 
 ```{r}
@@ -381,8 +426,64 @@ ggplot(ct, aes(year, cites)) +
 <br><br>
 ```{r }
 scholar%>% 
-  select(title, author, journal, year, cites, ImpactFactor) %>%
+  select(title, author, journal, year, cites, impact) %>%
   kable(col.names = c("Title", "Authors", "Journal", "Year", "Total Citations", "Impact Factor")) %>%
   kable_styling(bootstrap_options = "hover") %>% 
   scroll_box(width = "auto%", height = "600px")
 ```
+
+## Peer reviews
+```{r}
+reviews <- rorcid::orcid_peer_reviews(params$orcid.id)
+reviews <- reviews$`0000-0002-9583-8636`$group$`peer-review-summary`
+get_title_from_issn <- function(issn) {
+  tryCatch(issn_title[[issn]], error = function(e) {rcrossref::cr_journals(issn)$data$title})
+}
+
+issnfunction <- function(x){
+  issn <- stringr::str_remove(reviews[[x]]$`review-group-id`[1], "issn:")
+if(issn == "1532-8473") {
+  "Journal of Peri-Anesthesia Nursing"
+} else if(issn == "1651-2219"){
+  "Annals of Medicine"
+}  else if(issn == "publons:Wiley"){
+  "Wiley journal not otherwise classified"
+  }   else if(issn == "1469-493X"){
+  "Cochrane Database of Systematic Reviews"
+  }   else if(issn == "1552-3799"){
+  "Clinical Nursing Research"
+  } else if(issn == "publons:Elsevier"){
+  "Elsevier journal not otherwise classified"
+  } else(get_title_from_issn(issn))
+}
+
+journalsReviewed <- vapply(seq(1,length(reviews), by = 1), issnfunction, "")  
+  
+
+numberReviewsFunction <- function(x){
+  length(reviews[[x]]$`review-group-id`)
+}
+
+numberReviewed <- purrr::map_dbl(seq(1,length(reviews), by = 1), numberReviewsFunction)  
+reviewdf <- tibble(journalsReviewed, numberReviewed)
+impact <- get_impactfactor(journals=reviewdf$journalsReviewed, max.distance = 0.1)
+reviewdf$impact <- impact$ImpactFactor
+reviewdf$impact <- na_if(reviewdf$impact, "244.585")
+reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
+
+totalreviews <- sum(reviewdf$numberReviewed)
+```
+<br>
+
+> Dr Conway has performed `r totalreviews` reviews since he commenced an acadmic career in 2013. He is also an Associate Editor for the journal Systematic Reviews.  
+
+<br>
+```{r}
+
+reviewdf %>% 
+  arrange(desc(numberReviewed)) %>% 
+  kable(col.names = c("Journal", "Number of reviews", "Impact Factor")) %>%
+  kable_styling(bootstrap_options = "hover") %>% 
+  scroll_box(width = "auto%", height = "600px")
+```
+
