@@ -1,7 +1,7 @@
 ---
 name: Aaron Conway
 position: "RBC Chair in Cardiovascular Nursing Research"
-address: "Peter Munk Cardiac Centre and University of Toronto"
+address: "Peter Munk Cardiac Centre, UHN and University of Toronto"
 phone: +1 (416) 946-7112
 www: aaronconway.info
 email: "aaron.conway@utoronto.ca"
@@ -270,26 +270,23 @@ orcid_service <- function(orcid, put_code = NULL,
 }
 
 service  <- orcid_service(params$orcid.id)
-# pulling out end year doesn't work because there is no variable if it is "current"
- pcodes <- vapply(service[[1]]$`affiliation-group`$summaries, "[[", 1, "service-summary.put-code")
- pcodes2 <- pcodes[!pcodes %in% 7620907] # this service is current
- out <- lapply(pcodes, function(z) orcid_service(params$orcid.id, put_code=z))
- end_year <- vapply(out, function(w) w[[1]]$`end-date`$year$value, "")
-end_year <- append("Current", end_year)
-out[[1]]$`7620907`
 
-
-vapply(out, function(w) w[[1]]$`end-date`, "")
-
-currentfunction <- if(is.null(out[[1]]$`7620907`$`end-date`)){
-  out[[1]]$`7620907`$`end-date`$year$value <- "Current"
+currentFunction <- function(x){
+  if(!is.null(service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date`)){
+     "Current"
+  } else {service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date.year.value`}
 }
+
+end_year <- vapply(seq(1, length(service$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
+
 
 service  <- service$`0000-0002-9583-8636`$`affiliation-group`$summaries
 service <- tibble(
   organization = purrr::map_chr(service, "service-summary.organization.name"),
   title = purrr::map_chr(service, "service-summary.role-title"),
   start = purrr::map_chr(service, "service-summary.start-date.year.value"))
+
+service$time <- glue::glue("{service$start} - {end_year}") 
 
 detailed_entries(service, what = title, with = organization, when = glue::glue("{start} - {end_year}"))
 ```
@@ -339,14 +336,25 @@ orcid_membership <- function(orcid, put_code = NULL,
 }
 
 membership  <- orcid_membership(params$orcid.id)
+
+currentFunction <- function(x){
+  if(!is.null(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date`)){
+     "Current"
+  } else {membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date.year.value`}
+}
+
+end_year <- vapply(seq(1, length(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
+
 membership <- membership$`0000-0002-9583-8636`$`affiliation-group`$summaries 
 
 membership <- tibble(
   organization = purrr::map_chr(membership, "membership-summary.organization.name"),
   title = purrr::map_chr(membership, "membership-summary.role-title"),
-  time = purrr::map_chr(membership, "membership-summary.start-date.year.value"))
+  start = purrr::map_chr(membership, "membership-summary.start-date.year.value"))
 
-detailed_entries(membership, what = title, with = organization, when = paste("Joined", time, sep = ": "))
+membership$time <- glue::glue("{membership$start} - {end_year}") 
+
+detailed_entries(membership, what = title, when = time, with = organization)
 ```
 
 
@@ -375,12 +383,20 @@ funding$type <- stringr::str_replace_all(funding$type, "SALARY_AWARD", "SALARY A
   detailed_entries(funding, what = type, with = funder, when = timeframe, where = Amount, why = title)
 ```
 
+# Open Source Software
+
+```{r}
+software <- tribble(~package, ~description, ~year,
+                    "spiritR", "A workflow to enable direct upload of a clinical trial protocol to clinicaltrials.gov
+", 2019)
+detailed_entries(software, what = description, with = package, when = year)
+```
+
 # Publications
 
 ```{r}
 results <- my.orcid(params$orcid.id) # single
 ```
-
 
 
 ```{r}
@@ -392,3 +408,50 @@ papers  <-  my.filter(results, max.authors=params$max.authors, order=params$orde
 ```{r list.papers, results='asis'}
 print_papers(papers)
 ```
+
+
+
+# Peer reviews
+```{r}
+reviews <- rorcid::orcid_peer_reviews(params$orcid.id)
+reviews <- reviews$`0000-0002-9583-8636`$group$`peer-review-summary`
+get_title_from_issn <- function(issn) {
+  tryCatch(issn_title[[issn]], error = function(e) {rcrossref::cr_journals(issn)$data$title})
+}
+
+issnfunction <- function(x){
+  issn <- stringr::str_remove(reviews[[x]]$`review-group-id`[1], "issn:")
+if(issn == "1532-8473") {
+  "Journal of Peri-Anesthesia Nursing"
+} else if(issn == "1651-2219"){
+  "Annals of Medicine"
+}  else if(issn == "publons:Wiley"){
+  "Wiley journal not otherwise classified"
+  }   else if(issn == "1469-493X"){
+  "Cochrane Database of Systematic Reviews"
+  }   else if(issn == "1552-3799"){
+  "Clinical Nursing Research"
+  } else if(issn == "publons:Elsevier"){
+  "Elsevier journal not otherwise classified"
+  } else(get_title_from_issn(issn))
+}
+
+journalsReviewed <- vapply(seq(1,length(reviews), by = 1), issnfunction, "")  
+  
+
+numberReviewsFunction <- function(x){
+  length(reviews[[x]]$`review-group-id`)
+}
+
+numberReviewed <- purrr::map_dbl(seq(1,length(reviews), by = 1), numberReviewsFunction)  
+reviewdf <- tibble(journalsReviewed, numberReviewed)
+reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
+totalreviews <- sum(reviewdf$numberReviewed)
+```
+
+```{r}
+reviewdf %>% 
+  arrange(desc(numberReviewed)) %>% 
+detailed_entries(with = journalsReviewed, when = numberReviewed)
+```
+
