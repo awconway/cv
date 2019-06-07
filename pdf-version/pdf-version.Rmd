@@ -43,207 +43,56 @@ Sys.setenv(ORCID_TOKEN=x, orcid_email="aaron.conway@utoronto.ca")
 
 ```{r}
 edu <- rorcid::orcid_educations(params$orcid.id)
-edu <- edu$`0000-0002-9583-8636`$`education-summary` %>% 
-  janitor::clean_names() %>% 
-  mutate(end_date = tidyr::replace_na(`end_date_year_value`, "Current")) %>%
-  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
-    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
-  select(role_title, organization_name, location, timeframe)
+edu <- edu$`0000-0002-9583-8636`$`affiliation-group`$summaries
 
-detailed_entries(edu, what = role_title, with = organization_name, when = timeframe, where = location)
+edu <- tibble(
+  organization = purrr::map_chr(edu, "education-summary.organization.name"),
+  title = purrr::map_chr(edu, "education-summary.role-title"),
+  start = purrr::map_chr(edu, "education-summary.start-date.year.value"),
+  end = purrr::map_chr(edu, "education-summary.end-date.year.value"),
+  city = purrr::map_chr(edu, "education-summary.organization.address.city"),
+  country = purrr::map_chr(edu, "education-summary.organization.address.country"))
+
+edu$time <- glue::glue("{edu$start} - {edu$end}")
+edu$location <- glue::glue("{edu$city}, {edu$country}") 
+
+detailed_entries(edu, what = title, with = organization, when = time, where = location)
 ```
 
 # Employment
 
 ```{r}
 employ <- rorcid::orcid_employments(params$orcid.id)
-employ <- employ$`0000-0002-9583-8636`$`employment-summary` %>% 
-  janitor::clean_names() %>% 
-  mutate(end_date = tidyr::replace_na(`end_date_year_value`, "Current")) %>%
-  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
-    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
-  select(role_title, organization_name, location, timeframe)
 
-detailed_entries(employ, what = role_title, with = organization_name, when = timeframe, where = location)
+currentFunction <- function(x){
+  if(!is.null(employ$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`employment-summary.end-date`)){
+     "Current"
+  } else {employ$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`employment-summary.end-date.year.value`}
+}
+
+end_year <- vapply(seq(1, length(employ$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
+
+employ <- employ$`0000-0002-9583-8636`$`affiliation-group`$summaries
+
+employ <- tibble(
+  organization = purrr::map_chr(employ, "employment-summary.organization.name"),
+  title = purrr::map_chr(employ, "employment-summary.role-title"),
+  start = purrr::map_chr(employ, "employment-summary.start-date.year.value"),
+  city = purrr::map_chr(employ, "employment-summary.organization.address.city"),
+  country = purrr::map_chr(employ, "employment-summary.organization.address.country"))
+
+employ$time <- glue::glue("{employ$start} - {end_year}")
+employ$location <- glue::glue("{employ$city}, {employ$country}") 
+
+detailed_entries(employ, what = title, with = organization, when = time, where = location)
 ```
 
-<!-- orcid api version 3.0 change to rorcid function -->
-
-```{r}
-ocom <- function(l) Filter(Negate(is.null), l)
-ocom2 <- function(l) Filter(function(l) !is.null(l) && length(l) > 0, l)
-
-orcid_base <- function() "https://pub.orcid.org/v3.0_rc1"
-
-ojson <- "application/vnd.orcid+json; qs=4"
-
-orc_GET <- function(url, args = list(), ctype = ojson, ...) {
-  cli <- crul::HttpClient$new(
-    url = url,
-    opts = list(...),
-    headers = list(
-      Accept = ctype,
-      `User-Agent` = orcid_ua(),
-      'X-USER-AGENT' = orcid_ua(),
-      Authorization = orcid_auth()
-    )
-  )
-  res <- cli$get(query = args)
-  errs(res)
-  res$parse("UTF-8") 
-}
-
-check_key <- function() {
-  x <- Sys.getenv("ORCID_TOKEN", "")
-  if (x == "") {
-    x <- getOption("orcid_token", "")
-  }
-  if (x == "") NULL else x
-}
-
-orcid_ua <- function() {
-  versions <- c(
-    paste0("r-curl/", utils::packageVersion("curl")),
-    paste0("crul/", utils::packageVersion("crul")),
-    sprintf("rOpenSci(rorcid/%s)", utils::packageVersion("rorcid"))
-  )
-  paste0(versions, collapse = " ")
-}
-
-`%||%` <- function(x, y) {
-  if (is.null(x) || length(x) == 0) y else x
-}
-
-errs <- function(x) {
-  if (x$status_code > 201) {
-    xx <- jsonlite::fromJSON(x$parse("UTF-8"))
-    if (any(c("error-code", "errorCode") %in% names(xx))) {
-      # match by status code
-      fun <- fauxpas::find_error_class(x$status_code)$new()
-      fun$mssg <- xx$`developer-message` %||% xx$developerMessage
-      fun$do_verbose(x)
-    } else {
-      # if no error message in response, just general stop
-      fauxpas::http(x)
-    }
-  }
-}
-
-fuzzydoi <- function(x, fuzzy = FALSE) {
-  if (fuzzy) {
-    x
-  } else {
-    sprintf("digital-object-ids:\"%s\"", x)
-  }
-}
-
-orc_parse <- function(x){
-  out <- jsonlite::fromJSON(x, TRUE, flatten = TRUE)
-  df <- tibble::as_data_frame(out$result)
-  # names(df) <- gsub("orcid-profile\\.|orcid-profile\\.orcid-bio\\.", "", names(df))
-  attr(df, "found") <- out$`num-found`
-  return(df)
-}
-
-# From the plyr package
-failwith <- function(default = NULL, f, quiet = FALSE) {
-  f <- match.fun(f)
-  function(...) try_default(f(...), default, quiet = quiet)
-}
-
-# From the plyr package
-try_default <- function(expr, default, quiet = FALSE) {
-  result <- default
-  if (quiet) {
-    tryCatch(result <- expr, error = function(e) {
-    })
-  }
-  else {
-    try(result <- expr)
-  }
-  result
-}
-
-pluck <- function(x, name, type) {
-  if (missing(type)) {
-    lapply(x, "[[", name)
-  } else {
-    vapply(x, "[[", name, FUN.VALUE = type)
-  }
-}
-
-pop <- function(x, name) x[ !names(x) %in% name ]
-
-orcid_prof_helper <- function(x, path, ctype = ojson, ...) {
-  url2 <- file.path(orcid_base(), x, path)
-  out <- orc_GET(url2, ctype = ctype, ...)
-  switch_parser(ctype, out)
-}
-
-switch_parser <- function(ctype, x) {
-  switch(
-    ctype,
-    `application/vnd.orcid+xml; qs=5` = px(x), 
-    `application/orcid+xml; qs=3` = px(x), 
-    `application/xml` = px(x), 
-    `application/vnd.orcid+json; qs=4` = pj(x), 
-    `application/orcid+json; qs=2` = pj(x), 
-    `application/json` = pj(x), 
-    `application/vnd.citationstyles.csl+json` = pj(x),
-    stop("no parser found for ", ctype)
-  )
-}
-
-pj <- function(z) jsonlite::fromJSON(z, flatten = TRUE)
-px <- function(z) xml2::read_xml(z)
-
-orcid_putcode_helper <- function(path, orcid, put_code, format, ...) {
-  if (!is.null(put_code)) {
-    if (length(orcid) > 1) {
-      stop("if 'put_code' is given, 'orcid' must be length 1")
-    }
-  }
-  pth <- if (is.null(put_code)) path else file.path(path, put_code)
-  if (length(pth) > 1) {
-    stats::setNames(
-      Map(function(z) orcid_prof_helper(orcid, z, ctype = format), pth), 
-      put_code)
-  } else {
-    nmd <- if (!is.null(put_code)) put_code else orcid
-    stats::setNames(
-      lapply(orcid, orcid_prof_helper, path = pth, ctype = format, ...), nmd)
-  }
-}
-
-as_dt <- function(x, tibble = TRUE) {
-  z <- data.table::setDF(
-    data.table::rbindlist(x, use.names = TRUE, fill = TRUE)
-  )
-  if (tibble) z <- tibble::as_tibble(z)
-  return(z)
-}
-
-```
 
 # Awards
 
 ```{r}
-orcid_distinction <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "distinctions" else "distinction"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "distinction/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-distinctions  <- orcid_distinction(params$orcid.id)
-distinctions <- distinctions$`0000-0002-9583-8636`$`affiliation-group`$summaries 
+distinctions  <- orcid_distinctions(params$orcid.id)
+distinctions <- distinctions$`0000-0002-9583-8636`$`affiliation-group`$summaries
 distinctions <- tibble(
   organization = purrr::map_chr(distinctions, "distinction-summary.organization.name"),
   title = purrr::map_chr(distinctions, "distinction-summary.role-title"),
@@ -255,21 +104,7 @@ detailed_entries(distinctions, what = title, with = organization, when = time)
 # Service
 
 ```{r}
-orcid_service <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "services" else "service"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "service/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-service  <- orcid_service(params$orcid.id)
+service  <- orcid_services(params$orcid.id)
 
 currentFunction <- function(x){
   if(!is.null(service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date`)){
@@ -309,7 +144,7 @@ orcid_invited_position <- function(orcid, put_code = NULL,
   orcid_putcode_helper(pth, orcid, put_code, format, ...)
 }
 
-invited_position  <- orcid_invited_position(params$orcid.id)
+invited_position  <- orcid_invited_positions(params$orcid.id)
 invited_position <- invited_position$`0000-0002-9583-8636`$`affiliation-group`$summaries 
 
 invited_position <- tibble(
@@ -321,21 +156,7 @@ invited_position <- tibble(
 # Memberships
 
 ```{r}
-orcid_membership <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "memberships" else "membership"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "membership/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-membership  <- orcid_membership(params$orcid.id)
+membership  <- orcid_memberships(params$orcid.id)
 
 currentFunction <- function(x){
   if(!is.null(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date`)){
@@ -413,14 +234,15 @@ print_papers(papers)
 
 # Peer reviews
 ```{r}
-reviews <- rorcid::orcid_peer_reviews(params$orcid.id)
-reviews <- reviews$`0000-0002-9583-8636`$group$`peer-review-summary`
+reviews <- orcid_peer_reviews(params$orcid.id)
+reviews_issn <- reviews$`0000-0002-9583-8636`$group$`external-ids.external-id`
+
 get_title_from_issn <- function(issn) {
   tryCatch(issn_title[[issn]], error = function(e) {rcrossref::cr_journals(issn)$data$title})
 }
 
 issnfunction <- function(x){
-  issn <- stringr::str_remove(reviews[[x]]$`review-group-id`[1], "issn:")
+  issn <- stringr::str_remove(reviews_issn[[x]]$`external-id-value`, "issn:")
 if(issn == "1532-8473") {
   "Journal of Peri-Anesthesia Nursing"
 } else if(issn == "1651-2219"){
@@ -436,14 +258,17 @@ if(issn == "1532-8473") {
   } else(get_title_from_issn(issn))
 }
 
-journalsReviewed <- vapply(seq(1,length(reviews), by = 1), issnfunction, "")  
+journalsReviewed <- vapply(seq(1,length(reviews_issn), by = 1), issnfunction, "")  
   
+reviews_per_journal  <- reviews$`0000-0002-9583-8636`$group$`peer-review-group`
+
+
 
 numberReviewsFunction <- function(x){
-  length(reviews[[x]]$`review-group-id`)
+  nrow(reviews_per_journal[[x]])
 }
 
-numberReviewed <- purrr::map_dbl(seq(1,length(reviews), by = 1), numberReviewsFunction)  
+numberReviewed <- purrr::map_dbl(seq(1,length(reviews_issn), by = 1), numberReviewsFunction)  
 reviewdf <- tibble(journalsReviewed, numberReviewed)
 reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
 totalreviews <- sum(reviewdf$numberReviewed)
