@@ -45,29 +45,49 @@ Sys.setenv(ORCID_TOKEN=x, orcid_email="aaron.conway@utoronto.ca")
 ## Education
 
 ```{r}
-edu <- rorcid::orcid_educations("0000-0002-9583-8636")
-edu <- edu$`0000-0002-9583-8636`$`education-summary` %>% 
-  janitor::clean_names() %>% 
-  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
-  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
-    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
-  select(role_title, organization_name, location, timeframe)
+edu <- rorcid::orcid_educations(params$orcid.id)
+edu <- edu$`0000-0002-9583-8636`$`affiliation-group`$summaries
 
-kable(edu, col.names = c("", "", "", ""))%>% 
+edu <- tibble(
+  organization = purrr::map_chr(edu, "education-summary.organization.name"),
+  title = purrr::map_chr(edu, "education-summary.role-title"),
+  start = purrr::map_chr(edu, "education-summary.start-date.year.value"),
+  end = purrr::map_chr(edu, "education-summary.end-date.year.value"),
+  city = purrr::map_chr(edu, "education-summary.organization.address.city"),
+  country = purrr::map_chr(edu, "education-summary.organization.address.country"))
+
+edu$time <- glue::glue("{edu$start} - {edu$end}")
+edu$location <- glue::glue("{edu$city}, {edu$country}") 
+
+kable(edu, col.names = c("", "", "", "", "", "","",""))%>% 
     kable_styling(bootstrap_options = "hover")
 ```
 
 ## Employment
 
 ```{r}
-employ <- rorcid::orcid_employments("0000-0002-9583-8636")
-employ <- employ$`0000-0002-9583-8636`$`employment-summary` %>% 
-  janitor::clean_names() %>% 
-  mutate(end_date = replace_na(`end_date_year_value`, "Current")) %>%
-  mutate(timeframe = glue::glue("{start_date_year_value} - {end_date}")) %>% 
-    mutate(location = glue::glue("{organization_address_city}, {organization_address_country}")) %>% 
-  select(role_title, organization_name, location, timeframe)
-kable(employ,  col.names = c("", "", "", ""))%>% 
+employ <- rorcid::orcid_employments(params$orcid.id)
+
+currentFunction <- function(x){
+  if(!is.null(employ$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`employment-summary.end-date`)){
+     "Current"
+  } else {employ$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`employment-summary.end-date.year.value`}
+}
+
+end_year <- vapply(seq(1, length(employ$`0000-0002-9583-8636`$`affiliation-group`$summaries), by = 1), currentFunction, "")
+
+employ <- employ$`0000-0002-9583-8636`$`affiliation-group`$summaries
+
+employ <- tibble(
+  organization = purrr::map_chr(employ, "employment-summary.organization.name"),
+  title = purrr::map_chr(employ, "employment-summary.role-title"),
+  start = purrr::map_chr(employ, "employment-summary.start-date.year.value"),
+  city = purrr::map_chr(employ, "employment-summary.organization.address.city"),
+  country = purrr::map_chr(employ, "employment-summary.organization.address.country"))
+
+employ$time <- glue::glue("{employ$start} - {end_year}")
+employ$location <- glue::glue("{employ$city}, {employ$country}") 
+kable(employ,  col.names = c("", "", "", "","","",""))%>% 
       column_spec(1, width = "18em") %>% 
     column_spec(2, width = "18em") %>% 
     kable_styling(bootstrap_options = "hover") 
@@ -234,22 +254,8 @@ as_dt <- function(x, tibble = TRUE) {
 ## Awards
 
 ```{r}
-orcid_distinction <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "distinctions" else "distinction"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "distinction/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-distinctions  <- orcid_distinction(params$orcid.id)
-distinctions <- distinctions$`0000-0002-9583-8636`$`affiliation-group`$summaries 
+distinctions  <- orcid_distinctions(params$orcid.id)
+distinctions <- distinctions$`0000-0002-9583-8636`$`affiliation-group`$summaries
 distinctions <- tibble(
   organization = purrr::map_chr(distinctions, "distinction-summary.organization.name"),
   title = purrr::map_chr(distinctions, "distinction-summary.role-title"),
@@ -262,21 +268,7 @@ kable(distinctions,  col.names = c("", "", ""))%>%
 ## Service
 
 ```{r}
-orcid_service <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "services" else "service"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "service/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-service  <- orcid_service(params$orcid.id)
+service  <- orcid_services(params$orcid.id)
 
 currentFunction <- function(x){
   if(!is.null(service$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`service-summary.end-date`)){
@@ -294,6 +286,8 @@ service <- tibble(
   start = purrr::map_chr(service, "service-summary.start-date.year.value"))
 
 service$time <- glue::glue("{service$start} - {end_year}") 
+
+service$time <- glue::glue("{service$start} - {end_year}") 
 service %>% 
 select(organization, title, time) %>% 
 kable(col.names = c("", "", "")) %>% 
@@ -305,21 +299,7 @@ kable(col.names = c("", "", "")) %>%
 ## Memberships
 
 ```{r}
-orcid_membership <- function(orcid, put_code = NULL, 
-                          format = "application/json", summary = FALSE, ...) {
-  
-  pth <- if (!summary) {
-    if (is.null(put_code)) "memberships" else "membership"
-  } else {
-    if (is.null(put_code)) {
-      stop("if summary == TRUE, must give 1 or more put_code")
-    }
-    "membership/summary"
-  }
-  orcid_putcode_helper(pth, orcid, put_code, format, ...)
-}
-
-membership  <- orcid_membership(params$orcid.id)
+membership  <- orcid_memberships(params$orcid.id)
 
 currentFunction <- function(x){
   if(!is.null(membership$`0000-0002-9583-8636`$`affiliation-group`$summaries[[x]]$`membership-summary.end-date`)){
@@ -337,9 +317,7 @@ membership <- tibble(
   start = purrr::map_chr(membership, "membership-summary.start-date.year.value"))
 
 membership$time <- glue::glue("{membership$start} - {end_year}") 
-membership %>% 
-select(organization, title, time) %>% 
-kable(col.names = c("", "", "")) %>% 
+kable(membership, col.names = c("", "", "", "")) %>% 
       column_spec(1, width = "25em") %>% 
     column_spec(2, width = "20em") %>% 
     kable_styling(bootstrap_options = "hover") 
@@ -350,18 +328,18 @@ kable(col.names = c("", "", "")) %>%
 
 
 ```{r}
-funding <- rorcid::orcid_fundings("0000-0002-9583-8636")
+funding <- rorcid::orcid_fundings(params$orcid.id)
 pcodes <- vapply(funding[[1]]$group$`funding-summary`, "[[", 1, "put-code")
-out <- lapply(pcodes, function(z) orcid_fundings("0000-0002-9583-8636", put_code=z))
+out <- lapply(pcodes, function(z) orcid_fundings(params$orcid.id, put_code=z))
 amount <- vapply(out, function(w) w[[1]]$amount$value, "")
 amount  <- paste("$", amount, sep = "")
 funding <- funding$`0000-0002-9583-8636`$group$`funding-summary` 
 funding <- tibble(
-  type = map_chr(funding, "type"),
-  funder = map_chr(funding, "organization.name"),
-  title = map_chr(funding, "title.title.value"),
-  start = map_chr(funding, "start-date.year.value"),
-  end = map_chr(funding, "end-date.year.value")) %>% 
+  type = purrr::map_chr(funding, "type"),
+  funder = purrr::map_chr(funding, "organization.name"),
+  title = purrr::map_chr(funding, "title.title.value"),
+  start = purrr::map_chr(funding, "start-date.year.value"),
+  end = purrr::map_chr(funding, "end-date.year.value")) %>% 
   mutate(timeframe = glue::glue("{start} - {end}")) %>% 
   select(type, funder, title, timeframe) 
 funding$type <- stringr::str_replace_all(funding$type, "SALARY_AWARD", "SALARY AWARD")
@@ -434,14 +412,15 @@ scholar%>%
 
 ## Peer reviews
 ```{r}
-reviews <- rorcid::orcid_peer_reviews(params$orcid.id)
-reviews <- reviews$`0000-0002-9583-8636`$group$`peer-review-summary`
+reviews <- orcid_peer_reviews(params$orcid.id)
+reviews_issn <- reviews$`0000-0002-9583-8636`$group$`external-ids.external-id`
+
 get_title_from_issn <- function(issn) {
   tryCatch(issn_title[[issn]], error = function(e) {rcrossref::cr_journals(issn)$data$title})
 }
 
 issnfunction <- function(x){
-  issn <- stringr::str_remove(reviews[[x]]$`review-group-id`[1], "issn:")
+  issn <- stringr::str_remove(reviews_issn[[x]]$`external-id-value`, "issn:")
 if(issn == "1532-8473") {
   "Journal of Peri-Anesthesia Nursing"
 } else if(issn == "1651-2219"){
@@ -457,14 +436,21 @@ if(issn == "1532-8473") {
   } else(get_title_from_issn(issn))
 }
 
-journalsReviewed <- vapply(seq(1,length(reviews), by = 1), issnfunction, "")  
+journalsReviewed <- vapply(seq(1,length(reviews_issn), by = 1), issnfunction, "")  
   
+reviews_per_journal  <- reviews$`0000-0002-9583-8636`$group$`peer-review-group`
+
+
 
 numberReviewsFunction <- function(x){
-  length(reviews[[x]]$`review-group-id`)
+  nrow(reviews_per_journal[[x]])
 }
 
-numberReviewed <- purrr::map_dbl(seq(1,length(reviews), by = 1), numberReviewsFunction)  
+numberReviewed <- purrr::map_dbl(seq(1,length(reviews_issn), by = 1), numberReviewsFunction)  
+reviewdf <- tibble(journalsReviewed, numberReviewed)
+reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
+totalreviews <- sum(reviewdf$numberReviewed)
+
 reviewdf <- tibble(journalsReviewed, numberReviewed)
 impact <- get_impactfactor(journals=reviewdf$journalsReviewed, max.distance = 0.1)
 reviewdf$impact <- impact$ImpactFactor
