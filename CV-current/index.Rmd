@@ -59,8 +59,10 @@ edu <- tibble(
 edu$time <- glue::glue("{edu$start} - {edu$end}")
 edu$location <- glue::glue("{edu$city}, {edu$country}") 
 edu %>% 
-  select(time, organization, title, location) %>% 
+  select(organization, title, time, location) %>% 
 kable(col.names = c("", "", "", ""))%>% 
+        column_spec(1, width = "18em") %>% 
+    column_spec(2, width = "18em") %>% 
     kable_styling(bootstrap_options = "hover")
 ```
 
@@ -90,7 +92,7 @@ employ$time <- glue::glue("{employ$start} - {end_year}")
 employ$location <- glue::glue("{employ$city}, {employ$country}") 
 
 employ %>% 
-  select(time, organization, title, location) %>% 
+  select(organization, title, time, location) %>% 
 kable(col.names = c("", "", "", ""))%>% 
       column_spec(1, width = "18em") %>% 
     column_spec(2, width = "18em") %>% 
