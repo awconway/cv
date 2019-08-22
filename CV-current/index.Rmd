@@ -381,7 +381,6 @@ papers <- get_num_articles(id)
 journals  <- get_num_distinct_journals(id)
 ```
 <br>
-
 >Dr Conway's publication metrics indicate a rising trajectory in terms of the quality and quantity of academic papers he has published and the citation count of those papers. Aaron has published `r papers` articles in `r journals` distinct journals across multiple disciplines including nursing, anesthesia and cardiology. His publications have been cited `r l$total_cites` times, with a current H-index of `r l$h_index` and `r l$i10_index` publications have at least 10 citations. The plots below shows the number of publications and citations per year since he started an academic career.
 
 <br>
@@ -433,6 +432,8 @@ if(issn == "1532-8473") {
   "Journal of Peri-Anesthesia Nursing"
 } else if(issn == "1651-2219"){
   "Annals of Medicine"
+}  else if(issn == "1873-491X"){
+  "International Journal of Nursing Studies"
 }  else if(issn == "publons:Wiley"){
   "Wiley journal not otherwise classified"
   }   else if(issn == "1469-493X"){

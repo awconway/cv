@@ -247,6 +247,8 @@ if(issn == "1532-8473") {
   "Journal of Peri-Anesthesia Nursing"
 } else if(issn == "1651-2219"){
   "Annals of Medicine"
+}  else if(issn == "1873-491X"){
+  "International Journal of Nursing Studies"
 }  else if(issn == "publons:Wiley"){
   "Wiley journal not otherwise classified"
   }   else if(issn == "1469-493X"){
