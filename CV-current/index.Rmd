@@ -381,6 +381,7 @@ papers <- get_num_articles(id)
 journals  <- get_num_distinct_journals(id)
 ```
 <br>
+
 >Dr Conway's publication metrics indicate a rising trajectory in terms of the quality and quantity of academic papers he has published and the citation count of those papers. Aaron has published `r papers` articles in `r journals` distinct journals across multiple disciplines including nursing, anesthesia and cardiology. His publications have been cited `r l$total_cites` times, with a current H-index of `r l$h_index` and `r l$i10_index` publications have at least 10 citations. The plots below shows the number of publications and citations per year since he started an academic career.
 
 <br>
