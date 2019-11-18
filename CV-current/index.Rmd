@@ -443,7 +443,10 @@ if(issn == "1532-8473") {
   "Clinical Nursing Research"
   } else if(issn == "publons:Elsevier"){
   "Elsevier journal not otherwise classified"
-  } else(get_title_from_issn(issn))
+  } else if(issn == "1557-3117"){
+  "Journal of Heart & Lung Transplantation"
+  }
+  else(get_title_from_issn(issn))
 }
 
 journalsReviewed <- vapply(seq(1,length(reviews_issn), by = 1), issnfunction, "")  
