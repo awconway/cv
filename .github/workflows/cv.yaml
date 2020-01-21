@@ -1,13 +1,15 @@
 on:
-  push:
-    branches: master
+  schedule:
+  - cron: '15 10 * * *'
 
 jobs:
   build:
     runs-on: macOS-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@master
+    - name: Trigger our build webhook on Netlify
+      run: curl -s -X POST "https://api.netlify.com/build_hooks/${TOKEN}"
+      env:
+        TOKEN: ${{ secrets.NETLIFY_CRON_BUILD_HOOK }}
 
       - name: Setup R
         uses: r-lib/actions/setup-r@master
