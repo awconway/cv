@@ -1,3 +1,4 @@
+name: Scheduled build
 on:
   schedule:
   - cron: '* * * * *'
@@ -7,9 +8,14 @@ jobs:
       runs-on: macOS-latest
       steps:
       - name: Trigger our build webhook on Netlify
-        run: curl -s -X POST "https://api.netlify.com/build_hooks/${TOKEN}"
+        run: |
+          curl -s -X POST "https://api.netlify.com/build_hooks/${TOKEN}"
+          npm install netlify-cli -g
+          netlify deploy --prod --dir pdf-version
         env:
           TOKEN: ${{ secrets.NETLIFY_CRON_BUILD_HOOK }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Setup R
         uses: r-lib/actions/setup-r@master
@@ -37,11 +43,3 @@ jobs:
       - name: Install npm
         uses: actions/setup-node@v1
 
-      - name: Deploy to Netlify
-        # NETLIFY_AUTH_TOKEN added in the repo's secrets
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          npm install netlify-cli -g
-          netlify deploy --prod --dir pdf-version
