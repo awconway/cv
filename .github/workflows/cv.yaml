@@ -1,6 +1,6 @@
 on:
   schedule:
-  - cron: '26 10 * * *'
+  - cron: '* /1 * * *'
 
 jobs:
   build:
@@ -32,7 +32,7 @@ jobs:
           R -e 'renv::restore()'
 
       - name: Build site
-        run: Rscript -e 'rmarkdown::render("index.Rmd", output_format = "vitae::awesomecv", quiet = TRUE)'
+        run: Rscript -e 'rmarkdown::render("pdf-version/index.Rmd", output_format = "vitae::awesomecv", quiet = TRUE)'
 
       - name: Install npm
         uses: actions/setup-node@v1
