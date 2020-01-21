@@ -257,7 +257,10 @@ if(issn == "1532-8473") {
   "Clinical Nursing Research"
   } else if(issn == "publons:Elsevier"){
   "Elsevier journal not otherwise classified"
-  } else(get_title_from_issn(issn))
+  } else if(issn == "1557-3117"){
+  "Journal of Heart & Lung Transplantation"
+  }
+  else(get_title_from_issn(issn))
 }
 
 journalsReviewed <- vapply(seq(1,length(reviews_issn), by = 1), issnfunction, "")  
@@ -273,6 +276,14 @@ numberReviewsFunction <- function(x){
 numberReviewed <- purrr::map_dbl(seq(1,length(reviews_issn), by = 1), numberReviewsFunction)  
 reviewdf <- tibble(journalsReviewed, numberReviewed)
 reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
+totalreviews <- sum(reviewdf$numberReviewed)
+
+reviewdf <- tibble(journalsReviewed, numberReviewed)
+impact <- get_impactfactor(journals=reviewdf$journalsReviewed, max.distance = 0.1)
+reviewdf$impact <- impact$ImpactFactor
+reviewdf$impact <- na_if(reviewdf$impact, "244.585")
+reviewdf$journalsReviewed <- recode(reviewdf$journalsReviewed, "Collegian Journal of the Royal College of Nursing Australia" = "Collegian")
+
 totalreviews <- sum(reviewdf$numberReviewed)
 ```
 
