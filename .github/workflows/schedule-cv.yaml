@@ -31,7 +31,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: docs
-        path: CV-current/index.html
+        path: index.html
 
   checkout-and-deploy:
     runs-on: ubuntu-latest
