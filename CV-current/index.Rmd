@@ -1,5 +1,5 @@
 ---
-runtime: shiny
+#runtime: shiny
 output: 
   html_document:
     css: styles.css
